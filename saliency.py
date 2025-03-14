@@ -29,13 +29,11 @@ def run_through_model(env, model, history, ix, interp_func=None, mask=None, mode
     obs = th.Tensor(im) # im has shape (4,84,84)
     obs = obs.unsqueeze(0) # shape (1,4,84,84)
 
-    #obs = obs.to(model.device)
-
     hidden = model.network(obs / 255.0)
     logits = model.actor(hidden)
     probs = Categorical(logits=logits)
-    actor_value = probs.probs
-    #actor_value = model.actor.to_neural_action_distribution(neural_state)
+    actor_value = probs.probs # Action probability distribution.
+
     critic_value = model.get_value(obs)
 
     return critic_value if mode == 'critic' else actor_value
@@ -67,15 +65,3 @@ def saliency_on_atari_frame(saliency, atari, fudge_factor, channel=2, sigma=0):
     I[:,:,channel] += S.astype('uint16')
     I = I.clip(1,255).astype('uint8')
     return I
-
-def get_env_meta(env_name):
-    meta = {}
-    if env_name=="seaquest":
-        meta['critic_ff'] = 600 ; meta['actor_ff'] = 500
-    elif env_name=="kangaroo":
-        meta['critic_ff'] = 600 ; meta['actor_ff'] = 300
-    elif env_name=="donkeykong":
-        meta['critic_ff'] = 400 ; meta['actor_ff'] = 400
-    else:
-        print('environment "{}" not supported'.format(env_name))
-    return meta
